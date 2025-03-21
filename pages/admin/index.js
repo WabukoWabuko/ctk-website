@@ -12,12 +12,15 @@ export async function getServerSideProps(context) {
     };
   }
   return {
-    props: { session },
+    props: { session }, // Ensure session is passed as a prop
   };
 }
 
 export default function AdminDashboard({ session }) {
   const [activeTab, setActiveTab] = useState('rotas');
+
+  // Log session for debugging
+  console.log('Session in AdminDashboard:', session);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -25,7 +28,9 @@ export default function AdminDashboard({ session }) {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="mt-2">Welcome, {session.user.email}</p>
+            <p className="mt-2">
+              Welcome, {session?.user?.email || 'Admin'}
+            </p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/' })}

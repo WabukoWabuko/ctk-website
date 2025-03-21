@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 export default function Layout({ children }) {
+  const { data: session } = useSession();
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-purple-800 text-white shadow-lg">
@@ -17,6 +20,11 @@ export default function Layout({ children }) {
             <Link href="/hymns" className="hover:text-yellow-300">Hymns</Link>
             <Link href="/sermons" className="hover:text-yellow-300">Sermons</Link>
             <Link href="/prayer" className="hover:text-yellow-300">Prayer</Link>
+            {session ? (
+              <Link href="/admin" className="hover:text-yellow-300">Admin</Link>
+            ) : (
+              <Link href="/admin/login" className="hover:text-yellow-300">Admin</Link>
+            )}
           </nav>
         </div>
       </header>
