@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { openDb } from '../../../lib/sqlite';
+import bcrypt from 'bcrypt';
 
 export default NextAuth({
   providers: [
@@ -13,7 +14,7 @@ export default NextAuth({
       async authorize(credentials) {
         const db = await openDb();
         const admin = await db.get('SELECT * FROM admins WHERE email = ?', [credentials.email]);
-        if (admin && admin.password === credentials.password) { // Plaintext for now, hash later
+        if (admin && await bcrypt.compare(credentials.password, admin.password)) {
           return { id: admin.id, email: admin.email };
         }
         return null;

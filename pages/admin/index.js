@@ -1,5 +1,5 @@
-import { getSession } from 'next-auth/react';
-import { useState } from 'react';
+import { getSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
@@ -22,8 +22,18 @@ export default function AdminDashboard({ session }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-purple-600 text-white p-4">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="mt-2">Welcome, {session.user.email}</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <p className="mt-2">Welcome, {session.user.email}</p>
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
       </header>
       <main className="p-6">
         <nav className="mb-6">
@@ -94,7 +104,7 @@ function RotasTab() {
     fetchRotas();
   };
 
-  useState(() => { fetchRotas(); }, []);
+  useEffect(() => { fetchRotas(); }, []);
 
   return (
     <div>
@@ -175,7 +185,7 @@ function HymnsTab() {
     fetchHymns();
   };
 
-  useState(() => { fetchHymns(); }, []);
+  useEffect(() => { fetchHymns(); }, []);
 
   return (
     <div>
@@ -249,7 +259,7 @@ function SermonsTab() {
     fetchSermons();
   };
 
-  useState(() => { fetchSermons(); }, []);
+  useEffect(() => { fetchSermons(); }, []);
 
   return (
     <div>
@@ -310,7 +320,7 @@ function PrayersTab() {
     fetchPrayers();
   };
 
-  useState(() => { fetchPrayers(); }, []);
+  useEffect(() => { fetchPrayers(); }, []);
 
   return (
     <div>

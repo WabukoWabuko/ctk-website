@@ -1,4 +1,5 @@
 import { openDb } from '../lib/sqlite';
+import Layout from '../components/Layout';
 
 export async function getServerSideProps() {
   const db = await openDb();
@@ -10,26 +11,32 @@ export async function getServerSideProps() {
 
 export default function Home({ rotas }) {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-purple-600 text-white p-4">
-        <h1 className="text-3xl font-bold">Welcome to Christ the King Anglican</h1>
-        <p className="mt-2">A place of worship, community, and faith.</p>
-      </header>
-      <main className="p-6">
-        <section>
-          <h2 className="text-2xl font-semibold">Next Service</h2>
-          {rotas.length > 0 ? (
-            <p>
-              {rotas[0].date} - Reader: {rotas[0].reader}, Preacher: {rotas[0].preacher}
+    <Layout>
+      <section className="relative bg-gradient-to-r from-purple-600 to-purple-800 text-white py-20 text-center rounded-lg shadow-lg">
+        <div className="absolute inset-0 opacity-10 bg-[url('/church-bg.jpg')] bg-cover bg-center" />
+        <div className="relative z-10">
+          <h1 className="text-5xl font-bold mb-4">Welcome to Christ the King Anglican</h1>
+          <p className="text-xl mb-6">A place of worship, community, and faith.</p>
+          <a
+            href="/rotas"
+            className="inline-block bg-yellow-400 text-purple-800 font-semibold py-3 px-6 rounded-lg hover:bg-yellow-500 transition"
+          >
+            Join Us This Sunday
+          </a>
+        </div>
+      </section>
+      <section className="mt-12">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-6">Next Service</h2>
+        {rotas.length > 0 ? (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-lg">
+              <strong>{rotas[0].date}</strong> - Reader: {rotas[0].reader}, Preacher: {rotas[0].preacher}
             </p>
-          ) : (
-            <p>No upcoming services yet.</p>
-          )}
-        </section>
-      </main>
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        <p>© 2025 Christ the King Anglican. All rights reserved.</p>
-      </footer>
-    </div>
+          </div>
+        ) : (
+          <p className="text-gray-600">No upcoming services yet.</p>
+        )}
+      </section>
+    </Layout>
   );
 }
