@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Anglican styles */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
