@@ -73,3 +73,32 @@ footer {
   opacity: 0.1;
   color: #D4A017;
 }
+
+.react-calendar {
+  width: 100%;
+  max-width: 800px;
+  background: #F8F9FA;
+  border: 1px solid #4B2E5A;
+  border-radius: 10px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.react-calendar__tile--active {
+  background: #D4A017 !important;
+  color: white !important;
+}
+
+.react-calendar__tile--has-events {
+  position: relative;
+}
+
+.react-calendar__tile--has-events::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  background: #2E5A2E;
+  border-radius: 50%;
+}
