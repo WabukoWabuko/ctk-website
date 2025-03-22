@@ -1,6 +1,9 @@
 asgiref==3.8.1
 Django==4.2.11
+django-cors-headers==4.7.0
 djangorestframework==3.14.0
+djangorestframework-simplejwt==5.5.0
+PyJWT==2.9.0
 pytz==2025.1
 sqlparse==0.5.3
 typing-extensions==4.12.2

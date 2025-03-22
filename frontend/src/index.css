@@ -1,13 +1,21 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Georgia', serif; /* Classic, Anglican feel */
+  background-color: #F8F9FA; /* White */
+  color: #343A40; /* Dark Gray */
 }
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.navbar {
+  background-color: #4B2E5A !important; /* Purple */
+}
+.navbar-brand, .nav-link {
+  color: #D4A017 !important; /* Gold */
+}
+.nav-link:hover {
+  color: #F8F9FA !important; /* White */
+}
+footer {
+  background-color: #4B2E5A !important; /* Purple */
+  color: #D4A017; /* Gold */
+}
+.card {
+  border: 1px solid #D4A017; /* Gold accents */
 }

@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+    <nav className="navbar navbar-expand-lg">
       <div className="container">
-        <NavLink className="navbar-brand" to="/">Church Name</NavLink>
+        <NavLink className="navbar-brand fw-bold" to="/">Christ the King Anglican</NavLink>
         <button
           className="navbar-toggler"
           type="button"
@@ -17,19 +17,19 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/">Home</NavLink>
+              <NavLink className="nav-link" to="/">Welcome</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/about">About</NavLink>
+              <NavLink className="nav-link" to="/about">Our Parish</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/events">Events</NavLink>
+              <NavLink className="nav-link" to="/events">Gatherings</NavLink>
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to="/sermons">Sermons</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/contact">Contact</NavLink>
+              <NavLink className="nav-link" to="/contact">Reach Out</NavLink>
             </li>
           </ul>
         </div>
