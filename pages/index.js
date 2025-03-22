@@ -11,7 +11,7 @@ export async function getServerSideProps() {
 
 export default function Home({ rotas }) {
   return (
-    <Layout>
+    <Layout title="Home - Christ the King Anglican">
       <section className="relative bg-gradient-to-r from-purple-600 to-purple-800 text-white py-20 text-center rounded-lg shadow-lg">
         <div className="absolute inset-0 opacity-10 bg-[url('/church-bg.jpg')] bg-cover bg-center" />
         <div className="relative z-10">

@@ -1,4 +1,4 @@
-import { getSession, signOut } from 'next-auth/react';
+import { getSession, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 
 export async function getServerSideProps(context) {
@@ -12,15 +12,24 @@ export async function getServerSideProps(context) {
     };
   }
   return {
-    props: { session }, // Ensure session is passed as a prop
+    props: { session },
   };
 }
 
-export default function AdminDashboard({ session }) {
+export default function AdminDashboard({ session: serverSession }) {
+  const { data: clientSession, status } = useSession();
   const [activeTab, setActiveTab] = useState('rotas');
+  const [message, setMessage] = useState({ text: '', type: '' }); // For success/error messages
 
-  // Log session for debugging
-  console.log('Session in AdminDashboard:', session);
+  const session = clientSession || serverSession;
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  const clearMessage = () => {
+    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -41,75 +50,122 @@ export default function AdminDashboard({ session }) {
         </div>
       </header>
       <main className="p-6">
+        {message.text && (
+          <div
+            className={`mb-4 p-4 rounded-lg ${
+              message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
         <nav className="mb-6">
           <button
             onClick={() => setActiveTab('rotas')}
             className={`mr-4 p-2 ${activeTab === 'rotas' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+            aria-label="Manage Rotas"
           >
             Rotas
           </button>
           <button
             onClick={() => setActiveTab('hymns')}
             className={`mr-4 p-2 ${activeTab === 'hymns' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+            aria-label="Manage Hymns"
           >
             Hymns
           </button>
           <button
             onClick={() => setActiveTab('sermons')}
             className={`mr-4 p-2 ${activeTab === 'sermons' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+            aria-label="Manage Sermons"
           >
             Sermons
           </button>
           <button
             onClick={() => setActiveTab('prayers')}
             className={`p-2 ${activeTab === 'prayers' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+            aria-label="Manage Prayers"
           >
             Prayers
           </button>
+          <button
+              onClick={() => setActiveTab('contacts')}
+              className={`p-2 ${activeTab === 'contacts' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+              aria-label="Manage Contacts"
+            >
+              Contacts
+            </button>
         </nav>
 
-        {activeTab === 'rotas' && <RotasTab />}
-        {activeTab === 'hymns' && <HymnsTab />}
-        {activeTab === 'sermons' && <SermonsTab />}
-        {activeTab === 'prayers' && <PrayersTab />}
+        {activeTab === 'rotas' && <RotasTab setMessage={setMessage} clearMessage={clearMessage} />}
+        {activeTab === 'hymns' && <HymnsTab setMessage={setMessage} clearMessage={clearMessage} />}
+        {activeTab === 'sermons' && <SermonsTab setMessage={setMessage} clearMessage={clearMessage} />}
+        {activeTab === 'prayers' && <PrayersTab setMessage={setMessage} clearMessage={clearMessage} />}
+        {activeTab === 'contacts' && <ContactsTab setMessage={setMessage} clearMessage={clearMessage} />}
       </main>
     </div>
   );
 }
 
-function RotasTab() {
+function RotasTab({ setMessage, clearMessage }) {
   const [date, setDate] = useState('');
   const [reader, setReader] = useState('');
   const [preacher, setPreacher] = useState('');
   const [rotas, setRotas] = useState([]);
 
   const fetchRotas = async () => {
-    const res = await fetch('/api/admin/rotas');
-    const data = await res.json();
-    setRotas(data);
+    try {
+      const res = await fetch('/api/admin/rotas');
+      if (!res.ok) throw new Error('Failed to fetch rotas');
+      const data = await res.json();
+      setRotas(data);
+    } catch (error) {
+      setMessage({ text: 'Error fetching rotas: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('/api/admin/rotas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, reader, preacher }),
-    });
-    fetchRotas();
-    setDate(''); setReader(''); setPreacher('');
+    try {
+      const res = await fetch('/api/admin/rotas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, reader, preacher }),
+      });
+      if (!res.ok) throw new Error('Failed to add rota');
+      setMessage({ text: 'Rota added successfully!', type: 'success' });
+      fetchRotas();
+      setDate('');
+      setReader('');
+      setPreacher('');
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error adding rota: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch('/api/admin/rotas', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    fetchRotas();
+    try {
+      const res = await fetch('/api/admin/rotas', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete rota');
+      setMessage({ text: 'Rota deleted successfully!', type: 'success' });
+      fetchRotas();
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error deleting rota: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
-  useEffect(() => { fetchRotas(); }, []);
+  useEffect(() => {
+    fetchRotas();
+  }, []);
 
   return (
     <div>
@@ -145,10 +201,13 @@ function RotasTab() {
       <ul className="space-y-4">
         {rotas.map((rota) => (
           <li key={rota.id} className="border p-4 rounded flex justify-between">
-            <span>{rota.date} - {rota.reader} - {rota.preacher}</span>
+            <span>
+              {rota.date} - {rota.reader} - {rota.preacher}
+            </span>
             <button
               onClick={() => handleDelete(rota.id)}
               className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+              aria-label={`Delete rota for ${rota.date}`}
             >
               Delete
             </button>
@@ -159,38 +218,72 @@ function RotasTab() {
   );
 }
 
-function HymnsTab() {
+function HymnsTab({ setMessage, clearMessage }) {
   const [title, setTitle] = useState('');
-  const [fileUrl, setFileUrl] = useState('');
+  const [file, setFile] = useState(null);
   const [hymns, setHymns] = useState([]);
 
   const fetchHymns = async () => {
-    const res = await fetch('/api/admin/hymns');
-    const data = await res.json();
-    setHymns(data);
+    try {
+      const res = await fetch('/api/admin/hymns');
+      if (!res.ok) throw new Error('Failed to fetch hymns');
+      const data = await res.json();
+      setHymns(data);
+    } catch (error) {
+      setMessage({ text: 'Error fetching hymns: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('/api/admin/hymns', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, file_url: fileUrl }),
-    });
-    fetchHymns();
-    setTitle(''); setFileUrl('');
+    if (!file) {
+      setMessage({ text: 'Please select a file to upload', type: 'error' });
+      clearMessage();
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/admin/hymns', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to add hymn');
+      setMessage({ text: 'Hymn added successfully!', type: 'success' });
+      fetchHymns();
+      setTitle('');
+      setFile(null);
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error adding hymn: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch('/api/admin/hymns', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    fetchHymns();
+    try {
+      const res = await fetch('/api/admin/hymns', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete hymn');
+      setMessage({ text: 'Hymn deleted successfully!', type: 'success' });
+      fetchHymns();
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error deleting hymn: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
-  useEffect(() => { fetchHymns(); }, []);
+  useEffect(() => {
+    fetchHymns();
+  }, []);
 
   return (
     <div>
@@ -205,11 +298,10 @@ function HymnsTab() {
           required
         />
         <input
-          type="text"
-          value={fileUrl}
-          onChange={(e) => setFileUrl(e.target.value)}
-          placeholder="File URL"
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
           className="p-2 border rounded mr-2"
+          accept="application/pdf"
           required
         />
         <button type="submit" className="bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
@@ -219,7 +311,9 @@ function HymnsTab() {
       <ul className="space-y-4">
         {hymns.map((hymn) => (
           <li key={hymn.id} className="border p-4 rounded flex justify-between">
-            <span>{hymn.title} - <a href={hymn.file_url} className="text-blue-500">Link</a></span>
+            <span>
+              {hymn.title} - <a href={hymn.file_url} className="text-blue-500">Link</a>
+            </span>
             <button
               onClick={() => handleDelete(hymn.id)}
               className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
@@ -233,38 +327,72 @@ function HymnsTab() {
   );
 }
 
-function SermonsTab() {
+function SermonsTab({ setMessage, clearMessage }) {
   const [title, setTitle] = useState('');
-  const [fileUrl, setFileUrl] = useState('');
+  const [file, setFile] = useState(null);
   const [sermons, setSermons] = useState([]);
 
   const fetchSermons = async () => {
-    const res = await fetch('/api/admin/sermons');
-    const data = await res.json();
-    setSermons(data);
+    try {
+      const res = await fetch('/api/admin/sermons');
+      if (!res.ok) throw new Error('Failed to fetch sermons');
+      const data = await res.json();
+      setSermons(data);
+    } catch (error) {
+      setMessage({ text: 'Error fetching sermons: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('/api/admin/sermons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, file_url: fileUrl }),
-    });
-    fetchSermons();
-    setTitle(''); setFileUrl('');
+    if (!file) {
+      setMessage({ text: 'Please select a file to upload', type: 'error' });
+      clearMessage();
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/admin/sermons', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Failed to add sermon');
+      setMessage({ text: 'Sermon added successfully!', type: 'success' });
+      fetchSermons();
+      setTitle('');
+      setFile(null);
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error adding sermon: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch('/api/admin/sermons', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    fetchSermons();
+    try {
+      const res = await fetch('/api/admin/sermons', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete sermon');
+      setMessage({ text: 'Sermon deleted successfully!', type: 'success' });
+      fetchSermons();
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error deleting sermon: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
-  useEffect(() => { fetchSermons(); }, []);
+  useEffect(() => {
+    fetchSermons();
+  }, []);
 
   return (
     <div>
@@ -279,11 +407,10 @@ function SermonsTab() {
           required
         />
         <input
-          type="text"
-          value={fileUrl}
-          onChange={(e) => setFileUrl(e.target.value)}
-          placeholder="File URL"
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
           className="p-2 border rounded mr-2"
+          accept="audio/*"
           required
         />
         <button type="submit" className="bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
@@ -293,7 +420,9 @@ function SermonsTab() {
       <ul className="space-y-4">
         {sermons.map((sermon) => (
           <li key={sermon.id} className="border p-4 rounded flex justify-between">
-            <span>{sermon.title} - <a href={sermon.file_url} className="text-blue-500">Link</a></span>
+            <span>
+              {sermon.title} - <a href={sermon.file_url} className="text-blue-500">Link</a>
+            </span>
             <button
               onClick={() => handleDelete(sermon.id)}
               className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
@@ -307,25 +436,41 @@ function SermonsTab() {
   );
 }
 
-function PrayersTab() {
+function PrayersTab({ setMessage, clearMessage }) {
   const [prayers, setPrayers] = useState([]);
 
   const fetchPrayers = async () => {
-    const res = await fetch('/api/admin/prayers');
-    const data = await res.json();
-    setPrayers(data);
+    try {
+      const res = await fetch('/api/admin/prayers');
+      if (!res.ok) throw new Error('Failed to fetch prayers');
+      const data = await res.json();
+      setPrayers(data);
+    } catch (error) {
+      setMessage({ text: 'Error fetching prayers: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch('/api/admin/prayers', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    fetchPrayers();
+    try {
+      const res = await fetch('/api/admin/prayers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete prayer');
+      setMessage({ text: 'Prayer deleted successfully!', type: 'success' });
+      fetchPrayers();
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error deleting prayer: ' + error.message, type: 'error' });
+      clearMessage();
+    }
   };
 
-  useEffect(() => { fetchPrayers(); }, []);
+  useEffect(() => {
+    fetchPrayers();
+  }, []);
 
   return (
     <div>
@@ -333,9 +478,80 @@ function PrayersTab() {
       <ul className="space-y-4">
         {prayers.map((prayer) => (
           <li key={prayer.id} className="border p-4 rounded flex justify-between">
-            <span>{prayer.request} - {prayer.submitted_at}</span>
+            <span>
+              {prayer.request} - {prayer.submitted_at}
+            </span>
             <button
               onClick={() => handleDelete(prayer.id)}
+              className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ContactsTab({ setMessage, clearMessage }) {
+  const [contacts, setContacts] = useState([]);
+
+  const fetchContacts = async () => {
+    try {
+      const res = await fetch('/api/admin/contacts');
+      if (!res.ok) throw new Error('Failed to fetch contacts');
+      const data = await res.json();
+      setContacts(data);
+    } catch (error) {
+      setMessage({ text: 'Error fetching contacts: ' + error.message, type: 'error' });
+      clearMessage();
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch('/api/admin/contacts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete contact');
+      setMessage({ text: 'Contact deleted successfully!', type: 'success' });
+      fetchContacts();
+      clearMessage();
+    } catch (error) {
+      setMessage({ text: 'Error deleting contact: ' + error.message, type: 'error' });
+      clearMessage();
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-4">Manage Contact Messages</h2>
+      <ul className="space-y-4">
+        {contacts.map((contact) => (
+          <li key={contact.id} className="border p-4 rounded flex justify-between">
+            <div>
+              <p>
+                <strong>Name:</strong> {contact.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {contact.email}
+              </p>
+              <p>
+                <strong>Message:</strong> {contact.message}
+              </p>
+              <p>
+                <strong>Submitted:</strong> {contact.submitted_at}
+              </p>
+            </div>
+            <button
+              onClick={() => handleDelete(contact.id)}
               className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
             >
               Delete

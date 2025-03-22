@@ -10,8 +10,8 @@ export default async function handler(req, res) {
   const db = await openDb();
 
   if (req.method === 'GET') {
-    const prayers = await db.all('SELECT * FROM prayers ORDER BY submitted_at DESC');
-    return res.status(200).json(prayers);
+    const contacts = await db.all('SELECT * FROM contacts ORDER BY submitted_at DESC');
+    return res.status(200).json(contacts);
   }
 
   if (req.method === 'DELETE') {
@@ -19,8 +19,8 @@ export default async function handler(req, res) {
     if (!id) {
       return res.status(400).json({ error: 'Missing ID' });
     }
-    await db.run('DELETE FROM prayers WHERE id = ?', [id]);
-    return res.status(200).json({ message: 'Prayer deleted successfully' });
+    await db.run('DELETE FROM contacts WHERE id = ?', [id]);
+    return res.status(200).json({ message: 'Contact deleted successfully' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
