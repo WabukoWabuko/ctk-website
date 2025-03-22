@@ -12,12 +12,17 @@ export default NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const db = await openDb();
-        const admin = await db.get('SELECT * FROM admins WHERE email = ?', [credentials.email]);
-        if (admin && await bcrypt.compare(credentials.password, admin.password)) {
-          return { id: admin.id, email: admin.email };
+        try {
+          const db = await openDb();
+          const admin = await db.get('SELECT * FROM admins WHERE email = ?', [credentials.email]);
+          if (admin && (await bcrypt.compare(credentials.password, admin.password))) {
+            return { id: admin.id, email: admin.email };
+          }
+          return null;
+        } catch (error) {
+          console.error('Authorize error:', error);
+          return null;
         }
-        return null;
       },
     }),
   ],
