@@ -1,1 +1,14 @@
-node_modules\n.env\nclient/.next\nctk.db
+# Python/Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+*.db
+*.sqlite3
+
+# Node/React
+node_modules/
+build/
+*.log
