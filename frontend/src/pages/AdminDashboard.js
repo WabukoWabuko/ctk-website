@@ -5,18 +5,29 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('events');
-  const [events, setEvents] = useState([]);
-  const [sermons, setSermons] = useState([]);
-  const [rotas, setRotas] = useState([]);
-  const [verses, setVerses] = useState([]);
-  const [gallery, setGallery] = useState([]);
-  const [offerings, setOfferings] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: '', date: '', description: '', image: null, video: null });
-  const [newSermon, setNewSermon] = useState({ title: '', date: '', text: '', audio: null, video: null });
-  const [newRota, setNewRota] = useState({ title: '', date: '', details: '' });
-  const [newVerse, setNewVerse] = useState({ verse_text: '', reference: '', date: '' });
-  const [newGallery, setNewGallery] = useState({ title: '', description: '', date: '', image: null, video: null });
-  const [newOffering, setNewOffering] = useState({ amount: '', donor_name: '', date: '', note: '' });
+  const [data, setData] = useState({
+    events: [], sermons: [], rotas: [], verses: [], gallery: [], offerings: [],
+    prayers: [], liturgical: [], news: [], volunteers: [], streams: [], directory: [],
+    ministries: [], lectionary: [], sermonNotes: [], feedback: []
+  });
+  const [newData, setNewData] = useState({
+    event: { title: '', date: '', description: '', image: null, video: null },
+    sermon: { title: '', date: '', text: '', audio: null, video: null },
+    rota: { title: '', date: '', details: '' },
+    verse: { verse_text: '', reference: '', date: '' },
+    gallery: { title: '', description: '', date: '', image: null, video: null },
+    offering: { amount: '', donor_name: '', date: '', note: '' },
+    prayer: { request: '', name: '', is_anonymous: false },
+    liturgical: { name: '', date: '', color: '', description: '' },
+    news: { title: '', content: '', image: null, date: '' },
+    volunteer: { title: '', event: null, rota: null, volunteer_name: '', date: '' },
+    stream: { title: '', video_url: '', date: '', is_live: false },
+    directory: { name: '', email: '', phone: '', is_public: false },
+    ministry: { name: '', description: '', leader: '', meeting_time: '' },
+    lectionary: { date: '', old_testament: '', psalm: '', epistle: '', gospel: '' },
+    sermonNote: { sermon: null, file: null, description: '' },
+    feedback: { name: '', email: '', message: '' }
+  });
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -26,243 +37,194 @@ const AdminDashboard = () => {
       return;
     }
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    axios.get('http://localhost:8000/api/events/', config).then(res => setEvents(res.data));
-    axios.get('http://localhost:8000/api/sermons/', config).then(res => setSermons(res.data));
-    axios.get('http://localhost:8000/api/rotas/', config).then(res => setRotas(res.data));
-    axios.get('http://localhost:8000/api/verses/', config).then(res => setVerses(res.data));
-    axios.get('http://localhost:8000/api/gallery/', config).then(res => setGallery(res.data));
-    axios.get('http://localhost:8000/api/offerings/', config).then(res => setOfferings(res.data));
+    const endpoints = [
+      'events', 'sermons', 'rotas', 'verses', 'gallery', 'offerings', 'prayers',
+      'liturgical', 'news', 'volunteers', 'streams', 'directory', 'ministries',
+      'lectionary', 'sermon-notes', 'feedback'
+    ];
+    endpoints.forEach(endpoint => {
+      axios.get(`http://localhost:8000/api/${endpoint}/`, config)
+        .then(res => setData(prev => ({ ...prev, [endpoint.replace('-', '')]: res.data })));
+    });
   }, [token, navigate]);
 
-  const handleAdd = async (e, endpoint, data, setter, reset) => {
+  const handleAdd = async (e, endpoint, dataKey, reset) => {
     e.preventDefault();
     const formData = new FormData();
-    for (const key in data) {
-      if (data[key]) formData.append(key, data[key]);
+    for (const key in newData[dataKey]) {
+      if (newData[dataKey][key] !== null && newData[dataKey][key] !== '') {
+        formData.append(key, newData[dataKey][key]);
+      }
     }
     const config = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } };
     try {
       const res = await axios.post(`http://localhost:8000/api/${endpoint}/`, formData, config);
-      setter(prev => [...prev, res.data]);
+      setData(prev => ({ ...prev, [endpoint.replace('-', '')]: [...prev[endpoint.replace('-', '')], res.data] }));
       reset();
     } catch (error) {
       console.error(`Error adding ${endpoint}:`, error.response?.data || error);
     }
   };
 
-  const handleDelete = async (endpoint, id, setter, items) => {
+  const handleDelete = async (endpoint, id, dataKey) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
     await axios.delete(`http://localhost:8000/api/${endpoint}/${id}/`, config);
-    setter(items.filter(item => item.id !== id));
+    setData(prev => ({ ...prev, [dataKey]: prev[dataKey].filter(item => item.id !== id) }));
   };
+
+  const renderForm = (endpoint, dataKey, fields) => (
+    <form onSubmit={(e) => handleAdd(e, endpoint, dataKey, () => setNewData(prev => ({ ...prev, [dataKey]: fields.reduce((acc, f) => ({ ...acc, [f.name]: f.type === 'checkbox' ? false : f.type === 'file' ? null : '' }), {}) })))}>
+      {fields.map(field => (
+        <div key={field.name} className="mb-3">
+          {field.type === 'textarea' ? (
+            <textarea className="form-control" placeholder={field.label} value={newData[dataKey][field.name]} onChange={(e) => setNewData(prev => ({ ...prev, [dataKey]: { ...prev[dataKey], [field.name]: e.target.value } }))} />
+          ) : field.type === 'file' ? (
+            <input type="file" className="form-control" accept={field.accept} onChange={(e) => setNewData(prev => ({ ...prev, [dataKey]: { ...prev[dataKey], [field.name]: e.target.files[0] } }))} />
+          ) : field.type === 'checkbox' ? (
+            <div className="form-check">
+              <input type="checkbox" className="form-check-input" checked={newData[dataKey][field.name]} onChange={(e) => setNewData(prev => ({ ...prev, [dataKey]: { ...prev[dataKey], [field.name]: e.target.checked } }))} />
+              <label className="form-check-label">{field.label}</label>
+            </div>
+          ) : (
+            <input type={field.type} className="form-control" placeholder={field.label} value={newData[dataKey][field.name]} onChange={(e) => setNewData(prev => ({ ...prev, [dataKey]: { ...prev[dataKey], [field.name]: e.target.value } }))} />
+          )}
+        </div>
+      ))}
+      <button type="submit" className="btn btn-outline-warning w-100">Add {dataKey.charAt(0).toUpperCase() + dataKey.slice(1)}</button>
+    </form>
+  );
 
   return (
     <div className="container-fluid my-5">
       <div className="row">
-        {/* Sidebar Menu */}
         <div className="col-md-3">
           <div className="card" style={{ backgroundColor: '#4B2E5A', color: '#D4A017', height: '100%' }}>
             <div className="card-body">
               <h3 className="text-center">Admin Sanctuary</h3>
               <ul className="nav flex-column">
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'events' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('events')}>
-                    Gatherings
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'sermons' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('sermons')}>
-                    Sermons
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'rotas' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('rotas')}>
-                    Rotas
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'verses' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('verses')}>
-                    Scripture
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'gallery' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('gallery')}>
-                    Gallery
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button className={`nav-link btn ${activeTab === 'offerings' ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab('offerings')}>
-                    Offerings
-                  </button>
-                </li>
+                {Object.keys(data).map(tab => (
+                  <li className="nav-item" key={tab}>
+                    <button className={`nav-link btn ${activeTab === tab ? 'btn-warning' : 'btn-outline-warning'} w-100 mb-2`} onClick={() => setActiveTab(tab)}>
+                      {tab.charAt(0).toUpperCase() + tab.slice(1).replace('sermonNotes', 'Sermon Notes')}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
-
-        {/* Content Area */}
         <div className="col-md-9">
           <div className="card p-4" style={{ backgroundColor: '#F8F9FA', borderRadius: '15px' }}>
             <h2 className="text-center mb-4" style={{ color: '#4B2E5A' }}>
-              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management
+              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('sermonNotes', 'Sermon Notes')} Management
             </h2>
 
-            {/* Events */}
-            {activeTab === 'events' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'events', newEvent, setEvents, () => setNewEvent({ title: '', date: '', description: '', image: null, video: null }))}>
-                  <input type="text" className="form-control mb-3" placeholder="Title" value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} />
-                  <input type="datetime-local" className="form-control mb-3" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
-                  <textarea className="form-control mb-3" placeholder="Description" value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} />
-                  <input type="file" className="form-control mb-3" accept="image/*" onChange={(e) => setNewEvent({ ...newEvent, image: e.target.files[0] })} />
-                  <input type="file" className="form-control mb-3" accept="video/*" onChange={(e) => setNewEvent({ ...newEvent, video: e.target.files[0] })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Proclaim Event</button>
-                </form>
-                <div className="row mt-4">
-                  {events.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>{item.title}</h5>
-                          <p>{new Date(item.date).toLocaleString()}</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('events', item.id, setEvents, events)}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {activeTab === 'events' && renderForm('events', 'event', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'date', type: 'datetime-local', label: 'Date' },
+              { name: 'description', type: 'textarea', label: 'Description' },
+              { name: 'image', type: 'file', accept: 'image/*' },
+              { name: 'video', type: 'file', accept: 'video/*' }
+            ])}
+            {activeTab === 'sermons' && renderForm('sermons', 'sermon', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'text', type: 'textarea', label: 'Text' },
+              { name: 'audio', type: 'file', accept: 'audio/*' },
+              { name: 'video', type: 'file', accept: 'video/*' }
+            ])}
+            {activeTab === 'rotas' && renderForm('rotas', 'rota', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'details', type: 'textarea', label: 'Details' }
+            ])}
+            {activeTab === 'verses' && renderForm('verses', 'verse', [
+              { name: 'verse_text', type: 'textarea', label: 'Verse Text' },
+              { name: 'reference', type: 'text', label: 'Reference' },
+              { name: 'date', type: 'date', label: 'Date' }
+            ])}
+            {activeTab === 'gallery' && renderForm('gallery', 'gallery', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'description', type: 'textarea', label: 'Description' },
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'image', type: 'file', accept: 'image/*' },
+              { name: 'video', type: 'file', accept: 'video/*' }
+            ])}
+            {activeTab === 'offerings' && renderForm('offerings', 'offering', [
+              { name: 'amount', type: 'number', label: 'Amount' },
+              { name: 'donor_name', type: 'text', label: 'Donor Name' },
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'note', type: 'textarea', label: 'Note' }
+            ])}
+            {activeTab === 'prayers' && renderForm('prayers', 'prayer', [
+              { name: 'request', type: 'textarea', label: 'Prayer Request' },
+              { name: 'name', type: 'text', label: 'Name (optional)' },
+              { name: 'is_anonymous', type: 'checkbox', label: 'Anonymous' }
+            ])}
+            {activeTab === 'liturgical' && renderForm('liturgical', 'liturgical', [
+              { name: 'name', type: 'text', label: 'Name' },
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'color', type: 'text', label: 'Color' },
+              { name: 'description', type: 'textarea', label: 'Description' }
+            ])}
+            {activeTab === 'news' && renderForm('news', 'news', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'content', type: 'textarea', label: 'Content' },
+              { name: 'image', type: 'file', accept: 'image/*' },
+              { name: 'date', type: 'date', label: 'Date' }
+            ])}
+            {activeTab === 'volunteers' && renderForm('volunteers', 'volunteer', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'date', type: 'date', label: 'Date' }
+            ])}
+            {activeTab === 'streams' && renderForm('streams', 'stream', [
+              { name: 'title', type: 'text', label: 'Title' },
+              { name: 'video_url', type: 'text', label: 'Video URL' },
+              { name: 'date', type: 'datetime-local', label: 'Date' },
+              { name: 'is_live', type: 'checkbox', label: 'Live' }
+            ])}
+            {activeTab === 'directory' && renderForm('directory', 'directory', [
+              { name: 'name', type: 'text', label: 'Name' },
+              { name: 'email', type: 'email', label: 'Email' },
+              { name: 'phone', type: 'text', label: 'Phone' },
+              { name: 'is_public', type: 'checkbox', label: 'Public' }
+            ])}
+            {activeTab === 'ministries' && renderForm('ministries', 'ministry', [
+              { name: 'name', type: 'text', label: 'Name' },
+              { name: 'description', type: 'textarea', label: 'Description' },
+              { name: 'leader', type: 'text', label: 'Leader' },
+              { name: 'meeting_time', type: 'text', label: 'Meeting Time' }
+            ])}
+            {activeTab === 'lectionary' && renderForm('lectionary', 'lectionary', [
+              { name: 'date', type: 'date', label: 'Date' },
+              { name: 'old_testament', type: 'text', label: 'Old Testament' },
+              { name: 'psalm', type: 'text', label: 'Psalm' },
+              { name: 'epistle', type: 'text', label: 'Epistle' },
+              { name: 'gospel', type: 'text', label: 'Gospel' }
+            ])}
+            {activeTab === 'sermonNotes' && renderForm('sermon-notes', 'sermonNote', [
+              { name: 'description', type: 'textarea', label: 'Description' },
+              { name: 'file', type: 'file', accept: '.pdf' }
+            ])}
+            {activeTab === 'feedback' && renderForm('feedback', 'feedback', [
+              { name: 'name', type: 'text', label: 'Name' },
+              { name: 'email', type: 'email', label: 'Email' },
+              { name: 'message', type: 'textarea', label: 'Message' }
+            ])}
 
-            {/* Sermons */}
-            {activeTab === 'sermons' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'sermons', newSermon, setSermons, () => setNewSermon({ title: '', date: '', text: '', audio: null, video: null }))}>
-                  <input type="text" className="form-control mb-3" placeholder="Title" value={newSermon.title} onChange={(e) => setNewSermon({ ...newSermon, title: e.target.value })} />
-                  <input type="date" className="form-control mb-3" value={newSermon.date} onChange={(e) => setNewSermon({ ...newSermon, date: e.target.value })} />
-                  <textarea className="form-control mb-3" placeholder="Text" value={newSermon.text} onChange={(e) => setNewSermon({ ...newSermon, text: e.target.value })} />
-                  <input type="file" className="form-control mb-3" accept="audio/*" onChange={(e) => setNewSermon({ ...newSermon, audio: e.target.files[0] })} />
-                  <input type="file" className="form-control mb-3" accept="video/*" onChange={(e) => setNewSermon({ ...newSermon, video: e.target.files[0] })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Add Sermon</button>
-                </form>
-                <div className="row mt-4">
-                  {sermons.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>{item.title}</h5>
-                          <p>{new Date(item.date).toLocaleDateString()}</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('sermons', item.id, setSermons, sermons)}>Remove</button>
-                        </div>
-                      </div>
+            <div className="row mt-4">
+              {data[activeTab].map(item => (
+                <div className="col-md-4 mb-3" key={item.id}>
+                  <div className="card">
+                    <div className="card-body">
+                      <h5>{item.title || item.name || item.reference || item.amount || 'Item'}</h5>
+                      <p>{item.date ? new Date(item.date).toLocaleDateString() : item.request?.slice(0, 50) || 'Details'}</p>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(activeTab === 'sermonNotes' ? 'sermon-notes' : activeTab, item.id, activeTab)}>Remove</button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Rotas */}
-            {activeTab === 'rotas' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'rotas', newRota, setRotas, () => setNewRota({ title: '', date: '', details: '' }))}>
-                  <input type="text" className="form-control mb-3" placeholder="Title" value={newRota.title} onChange={(e) => setNewRota({ ...newRota, title: e.target.value })} />
-                  <input type="date" className="form-control mb-3" value={newRota.date} onChange={(e) => setNewRota({ ...newRota, date: e.target.value })} />
-                  <textarea className="form-control mb-3" placeholder="Details (e.g., Reader: Jane)" value={newRota.details} onChange={(e) => setNewRota({ ...newRota, details: e.target.value })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Share Rota</button>
-                </form>
-                <div className="row mt-4">
-                  {rotas.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>{item.title}</h5>
-                          <p>{new Date(item.date).toLocaleDateString()}</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('rotas', item.id, setRotas, rotas)}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Verses */}
-            {activeTab === 'verses' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'verses', newVerse, setVerses, () => setNewVerse({ verse_text: '', reference: '', date: '' }))}>
-                  <textarea className="form-control mb-3" placeholder="Verse Text" value={newVerse.verse_text} onChange={(e) => setNewVerse({ ...newVerse, verse_text: e.target.value })} />
-                  <input type="text" className="form-control mb-3" placeholder="Reference (e.g., John 3:16)" value={newVerse.reference} onChange={(e) => setNewVerse({ ...newVerse, reference: e.target.value })} />
-                  <input type="date" className="form-control mb-3" value={newVerse.date} onChange={(e) => setNewVerse({ ...newVerse, date: e.target.value })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Proclaim Verse</button>
-                </form>
-                <div className="row mt-4">
-                  {verses.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>{item.reference}</h5>
-                          <p>{item.verse_text.slice(0, 50)}...</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('verses', item.id, setVerses, verses)}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Gallery */}
-            {activeTab === 'gallery' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'gallery', newGallery, setGallery, () => setNewGallery({ title: '', description: '', date: '', image: null, video: null }))}>
-                  <input type="text" className="form-control mb-3" placeholder="Title" value={newGallery.title} onChange={(e) => setNewGallery({ ...newGallery, title: e.target.value })} />
-                  <textarea className="form-control mb-3" placeholder="Description" value={newGallery.description} onChange={(e) => setNewGallery({ ...newGallery, description: e.target.value })} />
-                  <input type="date" className="form-control mb-3" value={newGallery.date} onChange={(e) => setNewGallery({ ...newGallery, date: e.target.value })} />
-                  <input type="file" className="form-control mb-3" accept="image/*" onChange={(e) => setNewGallery({ ...newGallery, image: e.target.files[0] })} />
-                  <input type="file" className="form-control mb-3" accept="video/*" onChange={(e) => setNewGallery({ ...newGallery, video: e.target.files[0] })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Add to Gallery</button>
-                </form>
-                <div className="row mt-4">
-                  {gallery.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>{item.title}</h5>
-                          <p>{item.description.slice(0, 50)}...</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('gallery', item.id, setGallery, gallery)}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Offerings */}
-            {activeTab === 'offerings' && (
-              <div>
-                <form onSubmit={(e) => handleAdd(e, 'offerings', newOffering, setOfferings, () => setNewOffering({ amount: '', donor_name: '', date: '', note: '' }))}>
-                  <input type="number" step="0.01" className="form-control mb-3" placeholder="Amount" value={newOffering.amount} onChange={(e) => setNewOffering({ ...newOffering, amount: e.target.value })} />
-                  <input type="text" className="form-control mb-3" placeholder="Donor Name (optional)" value={newOffering.donor_name} onChange={(e) => setNewOffering({ ...newOffering, donor_name: e.target.value })} />
-                  <input type="date" className="form-control mb-3" value={newOffering.date} onChange={(e) => setNewOffering({ ...newOffering, date: e.target.value })} />
-                  <textarea className="form-control mb-3" placeholder="Note" value={newOffering.note} onChange={(e) => setNewOffering({ ...newOffering, note: e.target.value })} />
-                  <button type="submit" className="btn btn-outline-warning w-100">Record Offering</button>
-                </form>
-                <div className="row mt-4">
-                  {offerings.map(item => (
-                    <div className="col-md-4 mb-3" key={item.id}>
-                      <div className="card">
-                        <div className="card-body">
-                          <h5>${item.amount}</h5>
-                          <p>{item.donor_name || 'Anonymous'} - {new Date(item.date).toLocaleDateString()}</p>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete('offerings', item.id, setOfferings, offerings)}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -18,6 +18,14 @@ const Navbar = () => {
             <li className="nav-item"><NavLink className="nav-link" to="/rotas">Rotas</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link" to="/verses">Scripture</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link" to="/gallery">Gallery</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/prayer">Prayer</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/liturgical">Liturgical</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/news">News</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/volunteer">Volunteer</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/stream">Worship Online</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/directory">Directory</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/ministries">Ministries</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/lectionary">Readings</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link" to="/give">Give</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link" to="/contact">Reach Out</NavLink></li>
             <li className="nav-item">
