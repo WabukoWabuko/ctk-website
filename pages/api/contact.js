@@ -1,4 +1,4 @@
-import { openDb } from '../../lib/sqlite';
+import { getDb } from '../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -7,11 +7,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const db = await openDb();
-    await db.run(
-      'INSERT INTO contacts (name, email, message, submitted_at) VALUES (?, ?, ?, ?)',
-      [name, email, message, new Date().toISOString()]
-    );
+    const db = await getDb();
+    await db`
+      INSERT INTO contacts (name, email, message, submitted_at)
+      VALUES (${name}, ${email}, ${message}, ${new Date().toISOString()})
+    `;
 
     return res.status(200).json({ message: 'Message submitted successfully!' });
   }

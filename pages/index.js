@@ -1,9 +1,9 @@
-import { openDb } from '../lib/sqlite';
+import { getDb } from '../lib/db';
 import Layout from '../components/Layout';
 
 export async function getServerSideProps() {
-  const db = await openDb();
-  const rotas = await db.all('SELECT * FROM rotas LIMIT 1');
+  const db = await getDb();
+  const { rows: rotas } = await db`SELECT * FROM rotas WHERE date >= ${new Date().toISOString().split('T')[0]} ORDER BY date ASC LIMIT 1`;
   return {
     props: { rotas },
   };

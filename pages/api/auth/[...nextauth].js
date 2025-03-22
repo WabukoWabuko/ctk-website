@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { openDb } from '../../../lib/sqlite';
+import { getDb } from '../../../lib/db';
 import bcrypt from 'bcrypt';
 
 export default NextAuth({
@@ -13,8 +13,8 @@ export default NextAuth({
       },
       async authorize(credentials) {
         try {
-          const db = await openDb();
-          const admin = await db.get('SELECT * FROM admins WHERE email = ?', [credentials.email]);
+          const db = await getDb();
+          const { rows: [admin] } = await db`SELECT * FROM admins WHERE email = ${credentials.email}`;
           if (admin && (await bcrypt.compare(credentials.password, admin.password))) {
             return { id: admin.id, email: admin.email };
           }
@@ -49,4 +49,3 @@ export default NextAuth({
     },
   },
 });
-

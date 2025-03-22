@@ -1,12 +1,12 @@
-import { openDb } from '../lib/sqlite';
+import { getDb } from '../lib/db';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 
 export async function getServerSideProps() {
-  const db = await openDb();
-  const sermons = await db.all('SELECT * FROM sermons');
+  const db = await getDb();
+  const { rows: initialSermons } = await db`SELECT * FROM sermons`;
   return {
-    props: { initialSermons: sermons },
+    props: { initialSermons },
   };
 }
 

@@ -1,5 +1,5 @@
 import { getSession } from 'next-auth/react';
-import { openDb } from '../../../lib/sqlite';
+import { getDb } from '../../../lib/db';
 
 export default async function handler(req, res) {
   const session = await getSession({ req });
@@ -7,10 +7,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const db = await openDb();
+  const db = await getDb();
 
   if (req.method === 'GET') {
-    const rotas = await db.all('SELECT * FROM rotas ORDER BY date ASC');
+    const { rows: rotas } = await db`SELECT * FROM rotas ORDER BY date ASC`;
     return res.status(200).json(rotas);
   }
 
@@ -19,10 +19,7 @@ export default async function handler(req, res) {
     if (!date || !reader || !preacher) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    await db.run(
-      'INSERT INTO rotas (date, reader, preacher) VALUES (?, ?, ?)',
-      [date, reader, preacher]
-    );
+    await db`INSERT INTO rotas (date, reader, preacher) VALUES (${date}, ${reader}, ${preacher})`;
     return res.status(200).json({ message: 'Rota added successfully' });
   }
 
@@ -31,7 +28,7 @@ export default async function handler(req, res) {
     if (!id) {
       return res.status(400).json({ error: 'Missing ID' });
     }
-    await db.run('DELETE FROM rotas WHERE id = ?', [id]);
+    await db`DELETE FROM rotas WHERE id = ${id}`;
     return res.status(200).json({ message: 'Rota deleted successfully' });
   }
 

@@ -1,12 +1,12 @@
-import { openDb } from '../lib/sqlite';
+import { getDb } from '../lib/db';
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 
 export async function getServerSideProps() {
-  const db = await openDb();
-  const rotas = await db.all('SELECT * FROM rotas ORDER BY date ASC');
+  const db = await getDb();
+  const { rows: initialRotas } = await db`SELECT * FROM rotas ORDER BY date ASC`;
   return {
-    props: { initialRotas: rotas },
+    props: { initialRotas },
   };
 }
 
