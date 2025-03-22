@@ -7,6 +7,8 @@ import About from './pages/About';
 import Events from './pages/Events';
 import Sermons from './pages/Sermons';
 import Contact from './pages/Contact';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/sermons" element={<Sermons />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Routes>
         </main>
         <Footer />

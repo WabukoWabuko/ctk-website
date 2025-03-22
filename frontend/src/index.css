@@ -1,21 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Georgia&display=swap');
+
 body {
-  font-family: 'Georgia', serif; /* Classic, Anglican feel */
+  font-family: 'Open Sans', sans-serif;
   background-color: #F8F9FA; /* White */
   color: #343A40; /* Dark Gray */
+  margin: 0;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Georgia', serif;
+  color: #4B2E5A; /* Purple */
+}
+
 .navbar {
-  background-color: #4B2E5A !important; /* Purple */
+  background-color: #4B2E5A !important;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .navbar-brand, .nav-link {
   color: #D4A017 !important; /* Gold */
+  transition: color 0.3s ease;
 }
-.nav-link:hover {
+
+.nav-link:hover, .nav-link.active {
   color: #F8F9FA !important; /* White */
 }
+
 footer {
-  background-color: #4B2E5A !important; /* Purple */
-  color: #D4A017; /* Gold */
+  background-color: #4B2E5A !important;
+  color: #D4A017;
 }
+
+.btn-outline-warning {
+  border-color: #D4A017;
+  color: #D4A017;
+}
+
+.btn-outline-warning:hover {
+  background-color: #D4A017;
+  color: #fff;
+}
+
 .card {
-  border: 1px solid #D4A017; /* Gold accents */
+  border: 1px solid #2E5A2E; /* Green accent */
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero {
+  background-color: #4B2E5A;
+  color: #F8F9FA;
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: '✝';
+  font-size: 10rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.1;
+  color: #D4A017;
 }

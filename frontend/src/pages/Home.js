@@ -1,16 +1,23 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <div className="container my-5">
-      <div className="text-center">
-        <h1 className="display-4 fw-bold" style={{ color: '#4B2E5A' }}>
-          Welcome to Christ the King
-        </h1>
+    <div>
+      <div className="hero">
+        <h1 className="display-3 fw-bold">Welcome to Christ the King</h1>
         <p className="lead">
-          A vibrant Anglican parish celebrating the reign of Christ through worship, fellowship, and service.
+          Proclaiming the reign of Christ through worship, fellowship, and service.
         </p>
-        <button className="btn btn-outline-warning mt-3">Join Us Sunday at 10 AM</button>
+        <NavLink to="/events" className="btn btn-outline-warning btn-lg mt-3">
+          Join Us This Sunday
+        </NavLink>
+      </div>
+      <div className="container my-5">
+        <h2 className="text-center">A Parish for All Seasons</h2>
+        <p className="text-center">
+          Rooted in Anglican tradition, we gather to celebrate the love and majesty of Christ our King.
+        </p>
       </div>
     </div>
   );
