@@ -32,6 +32,9 @@ const Navbar = () => {
               <NavLink className="nav-link" to="/contact">Reach Out</NavLink>
             </li>
             <li className="nav-item">
+                <NavLink className="nav-link" to="/give">Give</NavLink>
+            </li>
+            <li className="nav-item">
               <NavLink className="nav-link btn btn-outline-warning ms-2 px-3" to="/admin-login">
                 Admin
               </NavLink>

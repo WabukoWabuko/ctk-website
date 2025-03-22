@@ -12,16 +12,24 @@ const Events = () => {
 
   return (
     <div className="container my-5">
-      <h1 style={{ color: '#4B2E5A' }}>Our Gatherings</h1>
-      <p>Come together in faith and community.</p>
+      <div className="hero">
+        <h1>Our Gatherings</h1>
+        <p>Join us in worship and fellowship.</p>
+      </div>
       <div className="row">
         {events.map(event => (
-          <div className="col-md-4 mb-3" key={event.id}>
+          <div className="col-md-4 mb-4" key={event.id}>
             <div className="card">
+              {event.image && <img src={event.image} className="card-img-top" alt={event.title} />}
               <div className="card-body">
                 <h5 className="card-title">{event.title}</h5>
-                <p className="card-text">{new Date(event.date).toLocaleString()}</p>
+                <p>{new Date(event.date).toLocaleString()}</p>
                 <p>{event.description}</p>
+                {event.video && (
+                  <video controls className="w-100">
+                    <source src={event.video} type="video/mp4" />
+                  </video>
+                )}
               </div>
             </div>
           </div>

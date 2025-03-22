@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'prayer',
     'announcements',
     'corsheaders',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -144,3 +146,11 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dnbxfosac',
+    'API_KEY': '897444568718124',
+    'API_SECRET': 'o8uACuxtTL8SOdso99qDaAMsd6I',
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

@@ -9,6 +9,7 @@ import Sermons from './pages/Sermons';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import Give from './pages/Give';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/sermons" element={<Sermons />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/give" element={<Give />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Routes>

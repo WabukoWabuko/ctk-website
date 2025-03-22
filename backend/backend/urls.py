@@ -1,7 +1,8 @@
-from django.contrib import admin
-from django.urls import path, include
+from django.contrib import admin  # Add this import
+from django.urls import path
 from events.views import EventList, EventDetail
 from sermons.views import SermonList, SermonDetail
+from core.views import OfferingList, OfferingDetail
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -10,6 +11,8 @@ urlpatterns = [
     path('api/events/<int:pk>/', EventDetail.as_view(), name='event-detail'),
     path('api/sermons/', SermonList.as_view(), name='sermon-list'),
     path('api/sermons/<int:pk>/', SermonDetail.as_view(), name='sermon-detail'),
+    path('api/offerings/', OfferingList.as_view(), name='offering-list'),
+    path('api/offerings/<int:pk>/', OfferingDetail.as_view(), name='offering-detail'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

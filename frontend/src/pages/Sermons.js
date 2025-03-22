@@ -12,16 +12,28 @@ const Sermons = () => {
 
   return (
     <div className="container my-5">
-      <h1 style={{ color: '#4B2E5A' }}>Sermons</h1>
-      <p>Hear the Word proclaimed.</p>
+      <div className="hero">
+        <h1>Sermons</h1>
+        <p>Hear the Word proclaimed in our parish.</p>
+      </div>
       <div className="row">
         {sermons.map(sermon => (
-          <div className="col-md-4 mb-3" key={sermon.id}>
+          <div className="col-md-4 mb-4" key={sermon.id}>
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">{sermon.title}</h5>
-                <p className="card-text">{new Date(sermon.date).toLocaleDateString()}</p>
-                {sermon.audio_url && <a href={sermon.audio_url} className="btn btn-outline-warning">Listen</a>}
+                <p>{new Date(sermon.date).toLocaleDateString()}</p>
+                {sermon.audio_url && (
+                  <audio controls className="w-100">
+                    <source src={sermon.audio_url} type="audio/mp3" />
+                  </audio>
+                )}
+                {sermon.video_url && (
+                  <video controls className="w-100">
+                    <source src={sermon.video_url} type="video/mp4" />
+                  </video>
+                )}
+                {sermon.text && <p>{sermon.text.slice(0, 100)}...</p>}
               </div>
             </div>
           </div>

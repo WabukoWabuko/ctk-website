@@ -4,4 +4,4 @@ from .models import Sermon
 class SermonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sermon
-        fields = ['id', 'title', 'date', 'audio_url', 'text', 'created_at']
+        fields = ['id', 'title', 'date', 'audio_url', 'video_url', 'text', 'created_at']
